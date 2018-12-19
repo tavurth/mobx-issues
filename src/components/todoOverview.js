@@ -6,7 +6,9 @@ import { observer, inject, Provider } from 'mobx-react';
 // Create a local variable with deep object values
 class willNotBeUpdated {
   @observable _test = 5;
-  @action increment = () => (this._test += 1);
+  @action increment() {
+    this._test += 1;
+  }
 
   @computed get test() {
     return this._test;
@@ -49,7 +51,10 @@ export default class TodoOverview extends React.Component {
   componentWillMount() {
     const { todoStore } = this.props;
 
+    // Create a new instance of our class (which is observable)
     todoStore.willNotBeUpdated = new willNotBeUpdated();
+
+    // Now we'll start an incremental timer
     todoStore.willNotBeUpdated.setup();
 
     setInterval(() => {
