@@ -1,58 +1,90 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {observer} from 'mobx-react';
-import { ACTIVE_TODOS, COMPLETED_TODOS } from '../constants';
+import { observer, inject, Provider } from 'mobx-react';
 
-import TodoItem from './todoItem';
+// Create a local variable with deep object values
+function willBeUpdated(updater) {
+  this.test = 5;
+
+  setInterval(() => {
+    this.test += 1;
+    updater(this);
+  }, 500);
+}
+
+// Create a local variable with deep object values
+function willNotBeUpdated() {
+  this.test = 5;
+
+  setInterval(() => {
+    this.test += 1;
+  }, 500);
+}
+
+const wrapper = name => Component => {
+  @observer
+  @inject('todoStore')
+  class Wrapper extends React.Component {
+    render() {
+      const { todoStore } = this.props;
+      return <Component value={todoStore[name].test} />;
+    }
+  }
+
+  return Wrapper;
+};
+
+function WillBeUpdatedComponent({ value }) {
+  return (
+    <div className="view">
+      <span>
+        willBeUpdated:
+        <label>{value}</label>
+      </span>
+    </div>
+  );
+}
+
+WillBeUpdatedComponent = wrapper('willBeUpdated')(WillBeUpdatedComponent);
+
+function WillNotBeUpdatedComponent({ value }) {
+  return (
+    <div className="view">
+      <span>
+        willNotBeUpdated:
+        <label>{value}</label>
+      </span>
+    </div>
+  );
+}
+
+WillNotBeUpdatedComponent = wrapper('willNotBeUpdated')(WillNotBeUpdatedComponent);
 
 @observer
 export default class TodoOverview extends React.Component {
-	render() {
-		const {todoStore, viewStore} = this.props;
-		if (todoStore.todos.length === 0)
-			return null;
-		return <section className="main">
-			<input
-				className="toggle-all"
-				id="toggle-all"
-				type="checkbox"
-				onChange={this.toggleAll}
-				checked={todoStore.activeTodoCount === 0}
-			/>
-			<label htmlFor="toggle-all"></label>
-			<ul className="todo-list">
-				{this.getVisibleTodos().map(todo =>
-					(<TodoItem
-						key={todo.id}
-						todo={todo}
-						viewStore={viewStore}
-					/>)
-				)}
-			</ul>
-		</section>
-	}
+  render() {
+    const { todoStore } = this.props;
+    return (
+      <Provider todoStore={todoStore}>
+        <section className="main">
+          <WillBeUpdatedComponent />
+          <WillNotBeUpdatedComponent />
+        </section>
+      </Provider>
+    );
+  }
 
-	getVisibleTodos() {
-		return this.props.todoStore.todos.filter(todo => {
-			switch (this.props.viewStore.todoFilter) {
-				case ACTIVE_TODOS:
-					return !todo.completed;
-				case COMPLETED_TODOS:
-					return todo.completed;
-				default:
-					return true;
-			}
-		});
-	}
+  updaterFunction = newWillBeUpdated => {
+    const { todoStore } = this.props;
 
-	toggleAll = (event) => {
-		var checked = event.target.checked;
-		this.props.todoStore.toggleAll(checked);
-	};
-}
+    console.log(todoStore.willBeUpdated.test);
+    todoStore.willBeUpdated.test = newWillBeUpdated.test;
+  };
 
+  componentWillMount() {
+    const { todoStore } = this.props;
 
-TodoOverview.propTypes = {
-	viewStore: PropTypes.object.isRequired,
-	todoStore: PropTypes.object.isRequired
+    todoStore.willBeUpdated = new willBeUpdated(this.updaterFunction);
+    todoStore.willNotBeUpdated = new willNotBeUpdated();
+  }
 }
