@@ -21,6 +21,20 @@ function willNotBeUpdated() {
   }, 500);
 }
 
+@inject('todoStore')
+class WillBeUpdatedComponent extends React.Component {
+  render() {
+    return (
+      <div className="view">
+        <span>
+          willBeUpdated:
+          <label>{this.props.todoStore.willBeUpdated.test}</label>
+        </span>
+      </div>
+    );
+  }
+}
+
 const wrapper = name => Component => {
   @observer
   @inject('todoStore')
@@ -33,19 +47,6 @@ const wrapper = name => Component => {
 
   return Wrapper;
 };
-
-function WillBeUpdatedComponent({ value }) {
-  return (
-    <div className="view">
-      <span>
-        willBeUpdated:
-        <label>{value}</label>
-      </span>
-    </div>
-  );
-}
-
-WillBeUpdatedComponent = wrapper('willBeUpdated')(WillBeUpdatedComponent);
 
 function WillNotBeUpdatedComponent({ value }) {
   return (
