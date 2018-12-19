@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { decorate, observable } from 'mobx';
 import { observer, inject, Provider } from 'mobx-react';
 
 // Create a local variable with deep object values
@@ -85,7 +86,15 @@ export default class TodoOverview extends React.Component {
   componentWillMount() {
     const { todoStore } = this.props;
 
-    todoStore.willBeUpdated = new willBeUpdated(this.updaterFunction);
+    todoStore.willBeUpdated = decorate(
+      // Try to use a runtime decorator
+      // https://mobx.js.org/refguide/modifiers.html
+      new willBeUpdated(this.updaterFunction),
+      {
+        test: observable,
+      },
+    );
+
     todoStore.willNotBeUpdated = new willNotBeUpdated();
   }
 }
