@@ -4,8 +4,8 @@ import * as Utils from '../utils';
 
 export default class TodoStore {
   @observable todos = [];
-  @observable.deep willBeUpdated = { test: 0 };
-  @observable.deep willNotBeUpdated = null;
+  @observable willBeUpdated = null;
+  @observable willNotBeUpdated = null;
 
   @computed get activeTodoCount() {
     return this.todos.reduce((sum, todo) => sum + (todo.completed ? 0 : 1), 0);

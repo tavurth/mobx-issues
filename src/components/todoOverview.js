@@ -1,16 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { decorate, observable } from 'mobx';
+import { action, decorate, computed, observable } from 'mobx';
 import { observer, inject, Provider } from 'mobx-react';
 
 // Create a local variable with deep object values
-function willBeUpdated(updater) {
-  this.test = 5;
+class willBeUpdated {
+  @observable _test = 5;
+  @action increment = () => (this._test += 1);
 
-  setInterval(() => {
-    this.test += 1;
-    updater(this);
-  }, 500);
+  @computed get test() {
+    return this._test;
+  }
+
+  setup() {
+    setInterval(() => {
+      this.increment();
+    }, 500);
+  }
 }
 
 // Create a local variable with deep object values
@@ -76,25 +82,15 @@ export default class TodoOverview extends React.Component {
     );
   }
 
-  updaterFunction = newWillBeUpdated => {
-    const { todoStore } = this.props;
-
-    console.log(todoStore.willBeUpdated.test);
-    todoStore.willBeUpdated.test = newWillBeUpdated.test;
-  };
-
   componentWillMount() {
     const { todoStore } = this.props;
 
-    todoStore.willBeUpdated = decorate(
-      // Try to use a runtime decorator
-      // https://mobx.js.org/refguide/modifiers.html
-      new willBeUpdated(this.updaterFunction),
-      {
-        test: observable,
-      },
-    );
-
+    todoStore.willBeUpdated = new willBeUpdated();
     todoStore.willNotBeUpdated = new willNotBeUpdated();
+
+    todoStore.willBeUpdated.setup();
+    setInterval(() => {
+      console.log(todoStore.willBeUpdated);
+    }, 500);
   }
 }
