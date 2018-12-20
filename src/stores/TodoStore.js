@@ -4,7 +4,6 @@ import * as Utils from '../utils';
 
 export default class TodoStore {
   @observable todos = [];
-  @observable willBeUpdated = null;
   @observable willNotBeUpdated = null;
 
   @computed get activeTodoCount() {
